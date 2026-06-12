@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Yasmine & Hesham</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0d14;
+  --surface:#16161f;
+  --surface2:#1e1e2b;
+  --border:rgba(255,255,255,.07);
+  --gold:#d4af37;
+  --gold-dim:rgba(212,175,55,.12);
+  --gold-border:rgba(212,175,55,.28);
+  --text:#e0e0e0;
+  --dim:rgba(255,255,255,.35);
+  --danger:#ff6b6b;
+  --radius:9px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;min-height:100vh}
+
+/* ── LOGIN ── */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
+#loginCard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2.5rem 2rem;width:100%;max-width:340px;text-align:center}
+.monogram{width:54px;height:54px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-border);display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.04em;margin-bottom:1rem}
+#loginCard h1{font-size:1.15rem;font-weight:600;margin-bottom:.3rem}
+#loginCard .sub{color:var(--dim);font-size:.82rem;margin-bottom:1.8rem}
+.field{position:relative;margin-bottom:.75rem}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;color:var(--text);font-size:.93rem;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold-border)}
+.field input::placeholder{color:rgba(255,255,255,.22)}
+.btn-primary{width:100%;background:var(--gold);color:#000;border:none;border-radius:var(--radius);padding:.78rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .18s;letter-spacing:.02em}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.error-banner{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.28);color:#ff9595;border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:.75rem;text-align:left;display:none}
+
+/* ── DASHBOARD LAYOUT ── */
+#dashboard{display:none;flex-direction:column;min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.4rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;gap:1rem}
+.hd-left{display:flex;align-items:center;gap:.65rem}
+.hd-monogram{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-border);display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--gold);flex-shrink:0}
+.hd-title{font-weight:600;font-size:.9rem}
+.hd-right{display:flex;align-items:center;gap:.9rem}
+.hd-date{color:var(--dim);font-size:.78rem;white-space:nowrap}
+.btn-logout{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--dim);padding:.38rem .85rem;font-size:.78rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-logout:hover{border-color:var(--danger);color:var(--danger)}
+
+main{padding:1.25rem;max-width:1100px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;gap:1.25rem}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.85rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem .9rem;text-align:center;transition:border-color .2s}
+.stat-card.gold{border-color:var(--gold-border);background:var(--gold-dim)}
+.stat-icon{font-size:1.25rem;margin-bottom:.4rem;line-height:1}
+.stat-val{font-size:1.7rem;font-weight:700;line-height:1;margin-bottom:.25rem}
+.stat-card.gold .stat-val{color:var(--gold)}
+.stat-lbl{font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:.07em}
+
+/* ── TABLE PANEL ── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.panel-controls{display:flex;align-items:center;gap:.7rem;padding:.9rem 1.1rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+#searchInput{flex:1;min-width:150px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:.52rem .85rem;color:var(--text);font-size:.86rem;outline:none;transition:border-color .2s}
+#searchInput:focus{border-color:var(--gold-border)}
+#searchInput::placeholder{color:rgba(255,255,255,.22)}
+.btn-export{background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:7px;color:var(--gold);padding:.52rem 1.05rem;font-size:.8rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .2s}
+.btn-export:hover{background:rgba(212,175,55,.2)}
+.btn-refresh{background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--dim);padding:.52rem .85rem;font-size:.8rem;cursor:pointer;transition:all .2s}
+.btn-refresh:hover{border-color:rgba(255,255,255,.18);color:var(--text)}
+
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:560px}
+thead th{background:var(--surface2);padding:.65rem 1rem;text-align:left;font-size:.68rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;border-bottom:1px solid var(--border)}
+thead th.center{text-align:center}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+td{padding:.75rem 1rem;font-size:.85rem;vertical-align:top}
+td.center{text-align:center;color:var(--dim)}
+td.total{text-align:center;font-weight:600;color:var(--text)}
+td.name{font-weight:500}
+td.msg{color:var(--dim);font-size:.8rem;max-width:200px;word-break:break-word;line-height:1.4}
+td.date{color:var(--dim);font-size:.78rem;white-space:nowrap}
+td.idx{color:rgba(255,255,255,.18);font-size:.75rem;text-align:center}
+.dim-val{color:rgba(255,255,255,.2)}
+.badge{display:inline-block;padding:.2rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:var(--gold-dim);color:var(--gold);letter-spacing:.02em}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--dim);font-size:.9rem}
+.empty-state .icon{font-size:2rem;margin-bottom:.75rem;opacity:.4}
+
+/* ── STATES ── */
+#loadingState{text-align:center;padding:3rem 1rem;color:var(--dim)}
+.spinner{display:inline-block;width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:.75rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+#errorState{text-align:center;padding:2.5rem 1rem}
+#errorMsg{color:#ff9595;font-size:.88rem;margin-bottom:.9rem}
+.btn-retry{background:transparent;border:1px solid rgba(255,107,107,.3);color:#ff9595;border-radius:6px;padding:.5rem 1.1rem;cursor:pointer;font-size:.82rem;transition:background .2s}
+.btn-retry:hover{background:rgba(255,107,107,.08)}
+
+/* ── RESULT COUNT ── */
+.result-count{font-size:.75rem;color:var(--dim);margin-left:auto;white-space:nowrap}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  main{padding:.9rem .75rem;gap:1rem}
+  header{padding:.7rem .9rem}
+  .hd-date{display:none}
+  .stat-val{font-size:1.45rem}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-grid .stat-card:last-child{grid-column:span 2}
+  td{padding:.6rem .75rem}
+  .panel-controls{padding:.75rem .9rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div id="loginCard">
+    <div class="monogram">YH</div>
+    <h1>Wedding Admin</h1>
+    <p class="sub">Yasmine &amp; Hesham · 15.07.2026</p>
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <div class="error-banner" id="loginError">Incorrect password. Please try again.</div>
+      <div class="field">
+        <input type="password" id="pwInput" placeholder="Enter admin password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-primary" id="loginBtn">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="dashboard">
+  <header>
+    <div class="hd-left">
+      <span class="hd-monogram">YH</span>
+      <span class="hd-title">Wedding Admin</span>
+    </div>
+    <div class="hd-right">
+      <span class="hd-date">15 · 07 · 2026</span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👁️</div>
+        <div class="stat-val" id="sVisits">—</div>
+        <div class="stat-lbl">Total Visits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💌</div>
+        <div class="stat-val" id="sRsvps">—</div>
+        <div class="stat-lbl">RSVPs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🧑</div>
+        <div class="stat-val" id="sAdults">—</div>
+        <div class="stat-lbl">Adults</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🧒</div>
+        <div class="stat-val" id="sChildren">—</div>
+        <div class="stat-lbl">Children</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-icon">🎊</div>
+        <div class="stat-val" id="sTotal">—</div>
+        <div class="stat-lbl">Total Guests</div>
+      </div>
+    </div>
+
+    <!-- RSVP Table -->
+    <div class="panel">
+      <div class="panel-controls">
+        <input type="search" id="searchInput" placeholder="Search by name…" oninput="filterTable()" autocomplete="off">
+        <span class="result-count" id="resultCount"></span>
+        <button class="btn-refresh" onclick="loadDashboard()" title="Refresh">↻ Refresh</button>
+        <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+
+      <div id="loadingState">
+        <div class="spinner"></div>
+        <div>Loading…</div>
+      </div>
+
+      <div id="errorState" style="display:none">
+        <div id="errorMsg">Failed to load data.</div>
+        <button class="btn-retry" onclick="loadDashboard()">Try again</button>
+      </div>
+
+      <div id="tableContainer" style="display:none">
+        <div class="table-wrap">
+          <table id="rsvpTable">
+            <thead>
+              <tr>
+                <th class="center">#</th>
+                <th>Name</th>
+                <th class="center">Adults</th>
+                <th class="center">Children</th>
+                <th class="center">Total</th>
+                <th>Message</th>
+                <th>Submitted At</th>
+              </tr>
+            </thead>
+            <tbody id="rsvpBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <div class="icon">💌</div>
+          <div>No RSVPs yet</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const getToken = () => localStorage.getItem('wad_token');
+
+function init() {
+  if (getToken()) {
+    showDashboard();
+    loadDashboard();
+  }
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const pw = document.getElementById('pwInput').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  err.style.display = 'none';
+
+  try {
+    const res = await fetch('/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('wad_token', data.token);
+      showDashboard();
+      loadDashboard();
+    } else {
+      err.style.display = 'block';
+      btn.textContent = 'Login';
+      btn.disabled = false;
+      document.getElementById('pwInput').select();
+    }
+  } catch {
+    err.textContent = 'Connection error. Is the server running?';
+    err.style.display = 'block';
+    btn.textContent = 'Login';
+    btn.disabled = false;
+  }
+}
+
+function showDashboard() {
+  document.getElementById('loginScreen').style.display = 'none';
+  const db = document.getElementById('dashboard');
+  db.style.display = 'flex';
+}
+
+function logout() {
+  localStorage.removeItem('wad_token');
+  location.reload();
+}
+
+let allRsvps = [];
+
+async function loadDashboard() {
+  const loading = document.getElementById('loadingState');
+  const errorState = document.getElementById('errorState');
+  const tableContainer = document.getElementById('tableContainer');
+
+  loading.style.display = 'block';
+  errorState.style.display = 'none';
+  tableContainer.style.display = 'none';
+
+  try {
+    const res = await fetch('/wedding/stats', {
+      headers: { 'x-admin-token': getToken() },
+    });
+
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+    const data = await res.json();
+
+    document.getElementById('sVisits').textContent = fmt(data.visitsCount);
+    document.getElementById('sRsvps').textContent = fmt(data.rsvpsCount);
+    document.getElementById('sAdults').textContent = fmt(data.totalAdults);
+    document.getElementById('sChildren').textContent = fmt(data.totalChildren);
+    document.getElementById('sTotal').textContent = fmt(data.totalGuests);
+
+    allRsvps = data.rsvps || [];
+    renderTable(allRsvps);
+
+    loading.style.display = 'none';
+    tableContainer.style.display = 'block';
+  } catch (err) {
+    loading.style.display = 'none';
+    errorState.style.display = 'block';
+    document.getElementById('errorMsg').textContent =
+      'Failed to load data. ' + err.message;
+  }
+}
+
+function renderTable(rsvps) {
+  const body = document.getElementById('rsvpBody');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('resultCount');
+
+  const total = allRsvps.length;
+  const shown = rsvps.length;
+  count.textContent = shown === total
+    ? (total === 0 ? '' : `${total} response${total !== 1 ? 's' : ''}`)
+    : `${shown} of ${total}`;
+
+  if (!rsvps.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = rsvps.map((r, i) => `
+    <tr>
+      <td class="idx">${i + 1}</td>
+      <td class="name">${esc(r.name)}</td>
+      <td class="center">${r.adults}</td>
+      <td class="center">${r.children}</td>
+      <td class="total"><span class="badge">${r.adults + r.children}</span></td>
+      <td class="msg">${r.message ? esc(r.message) : '<span class="dim-val">—</span>'}</td>
+      <td class="date">${fmtDate(r.createdAt)}</td>
+    </tr>
+  `).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  renderTable(q ? allRsvps.filter(r => r.name.toLowerCase().includes(q)) : allRsvps);
+}
+
+function exportCSV() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const rows = q ? allRsvps.filter(r => r.name.toLowerCase().includes(q)) : allRsvps;
+
+  const lines = [
+    ['#', 'Name', 'Adults', 'Children', 'Total', 'Message', 'Submitted At'],
+    ...rows.map((r, i) => [
+      i + 1,
+      r.name,
+      r.adults,
+      r.children,
+      r.adults + r.children,
+      r.message || '',
+      fmtDate(r.createdAt),
+    ]),
+  ].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
+
+  const csv = '﻿' + lines.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `rsvp-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function fmt(n) {
+  return typeof n === 'number' ? n.toLocaleString() : '—';
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return (
+    d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ' · ' +
+    d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  );
+}
+
+init();
+</script>
+</body>
+</html>
