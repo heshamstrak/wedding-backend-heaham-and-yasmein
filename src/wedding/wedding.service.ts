@@ -6,6 +6,10 @@ export class WeddingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async trackVisit(ip?: string) {
+    if (ip) {
+      const existing = await this.prisma.visit.findFirst({ where: { ip } });
+      if (existing) return { ok: true, duplicate: true };
+    }
     await this.prisma.visit.create({ data: { ip: ip || null } });
     return { ok: true };
   }
